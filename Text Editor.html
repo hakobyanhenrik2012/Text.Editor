@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Editor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            background: #f3f4f6;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        #editor-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+        }
+        #file-options {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        #controls {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            font-size: 16px;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            resize: none;
+            text-align: left;
+        }
+        button, input[type="color"], input[type="number"] {
+            padding: 8px 12px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        button:hover, input[type="color"]:hover, input[type="number"]:hover {
+            background-color: #45a049;
+        }
+        #controls label {
+            margin-left: 10px;
+            font-weight: bold;
+        }
+        img {
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Customizable Text Editor</h1>
+
+    <div id="file-options">
+        <button onclick="saveText()">Save</button>
+        <button onclick="loadText()">Open</button>
+        <button onclick="printText()">Print</button>
+        <button onclick="clearText()">New Text</button>
+    </div>
+
+    <div id="editor-container">
+        <div id="controls">
+            <!-- Text Area Size -->
+            <label for="width">Width:</label>
+            <input type="number" id="width" value="20" min="5" max="100" onchange="resizeTextArea()"> cm
+            <label for="height">Height:</label>
+            <input type="number" id="height" value="30" min="10" max="60" onchange="resizeTextArea()"> cm
+        </div>
+
+        <textarea id="textArea" placeholder="Write your text here..."></textarea>
+        <input type="file" id="imageUploader" accept="image/*" style="display: none;" onchange="insertImage()">
+    </div>
+
+    <script>
+        // Track formatting states
+        let isBold = false;
+        let isItalic = false;
+        let isUnderline = false;
+
+        // Toggle bold formatting
+        function toggleBold() {
+            isBold = !isBold;
+            const textArea = document.getElementById('textArea');
+            textArea.style.fontWeight = isBold ? 'bold' : 'normal';
+            document.getElementById('boldButton').style.backgroundColor = isBold ? '#1e88e5' : '#4CAF50';
+        }
+
+        // Toggle italic formatting
+        function toggleItalic() {
+            isItalic = !isItalic;
+            const textArea = document.getElementById('textArea');
+            textArea.style.fontStyle = isItalic ? 'italic' : 'normal';
+            document.getElementById('italicButton').style.backgroundColor = isItalic ? '#1e88e5' : '#4CAF50';
+        }
+
+        // Toggle underline formatting
+        function toggleUnderline() {
+            isUnderline = !isUnderline;
+            const textArea = document.getElementById('textArea');
+            textArea.style.textDecoration = isUnderline ? 'underline' : 'none';
+            document.getElementById('underlineButton').style.backgroundColor = isUnderline ? '#1e88e5' : '#4CAF50';
+        }
+
+        // Change text color
+        function changeTextColor() {
+            const textColor = document.getElementById('textColor').value;
+            const textArea = document.getElementById('textArea');
+            textArea.style.color = textColor;
+        }
+
+        // Resize text area
+        function resizeTextArea() {
+            const width = document.getElementById('width').value * 37.795276; // Convert cm to pixels
+            const height = document.getElementById('height').value * 37.795276; // Convert cm to pixels
+            const textArea = document.getElementById('textArea');
+            textArea.style.width = width + 'px';
+            textArea.style.height = height + 'px';
+        }
+
+        // Save the text to a file
+        function saveText() {
+            const text = document.getElementById('textArea').value;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'textfile.txt';
+            link.click();
+        }
+
+        // Load text from a file
+        function loadText() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.txt';
+            input.onchange = event => {
+                const file = event.target.files[0];
+                const reader = new FileReader();
+                reader.onload = e => {
+                    document.getElementById('textArea').value = e.target.result;
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // Print the text
+        function printText() {
+            const text = document.getElementById('textArea').value;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write('<pre>' + text + '</pre>');
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // Clear the text area for a new file
+        function clearText() {
+            document.getElementById('textArea').value = '';
+        }
+
+        // Upload an image
+        function uploadImage() {
+            const imageUploader = document.getElementById('imageUploader');
+            imageUploader.click();
+        }
+
+        // Insert an image into the text area
+        function insertImage() {
+            const imageUploader = document.getElementById('imageUploader');
+            const file = imageUploader.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const textArea = document.getElementById('textArea');
+                    const imgTag = `<img src='${e.target.result}' alt='Image' style='max-width: 100%; height: auto;'>\n`;
+                    textArea.value += imgTag;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+</body>
+</html>
